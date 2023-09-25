@@ -1,0 +1,335 @@
+{
+	"info": {
+		"_postman_id": "317ebd8d-bacd-45ae-9109-90417ef58632",
+		"name": "POC - Azure DevOps Api Automation",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29973310"
+	},
+	"item": [
+		{
+			"name": "Generate Client Assertion",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const client_assertion = pm.request.headers.get(\"Authorization\").replace(\"Bearer \", \"\");\r",
+							"pm.collectionVariables.set(\"client_assertion\", client_assertion);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "jwt",
+					"jwt": [
+						{
+							"key": "privateKey",
+							"value": "{{cert_privatey_key}}",
+							"type": "string"
+						},
+						{
+							"key": "header",
+							"value": "{\r\n    \"alg\": \"RS256\",\r\n    \"typ\": \"JWT\",\r\n    \"x5t\": \"{{x5t}}\"\r\n}",
+							"type": "string"
+						},
+						{
+							"key": "payload",
+							"value": "{\r\n  \"aud\": \"https://login.microsoftonline.com/{{tenant_id}}/oauth2/v2.0/token\",\r\n  \"exp\": {{exp}},\r\n  \"iss\": \"{{client_id}}\",\r\n  \"jti\": \"{{jti}}\",\r\n  \"nbf\": {{nbf}},\r\n  \"sub\": \"{{client_id}}\"\r\n}",
+							"type": "string"
+						},
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "algorithm",
+							"value": "RS256",
+							"type": "string"
+						},
+						{
+							"key": "isSecretBase64Encoded",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "headerPrefix",
+							"value": "Bearer",
+							"type": "string"
+						},
+						{
+							"key": "queryParamKey",
+							"value": "token",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://app.vssps.visualstudio.com/_apis/profile/profiles/me?api-version=7.1-preview.3",
+					"protocol": "https",
+					"host": [
+						"app",
+						"vssps",
+						"visualstudio",
+						"com"
+					],
+					"path": [
+						"_apis",
+						"profile",
+						"profiles",
+						"me"
+					],
+					"query": [
+						{
+							"key": "api-version",
+							"value": "7.1-preview.3"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Access Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const access_token = pm.response.json().access_token\r",
+							"\r",
+							"pm.collectionVariables.set(\"access_token\", access_token)"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "scope",
+							"value": "{{az_devops_scope}}",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{client_id}}",
+							"type": "text"
+						},
+						{
+							"key": "client_assertion_type",
+							"value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+							"type": "text"
+						},
+						{
+							"key": "client_assertion",
+							"value": "{{client_assertion}}",
+							"type": "text"
+						},
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://login.microsoftonline.com/{{tenant_id}}/oauth2/v2.0/token",
+					"protocol": "https",
+					"host": [
+						"login",
+						"microsoftonline",
+						"com"
+					],
+					"path": [
+						"{{tenant_id}}",
+						"oauth2",
+						"v2.0",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get My Account",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Fetches my account name\", function(){",
+							"    const account = pm.response.json();",
+							"    const account_name = pm.collectionVariables.get(\"account_name\");",
+							"    pm.expect(account.displayName).to.eql(account_name);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://app.vssps.visualstudio.com/_apis/profile/profiles/me?api-version=7.1-preview.3",
+					"protocol": "https",
+					"host": [
+						"app",
+						"vssps",
+						"visualstudio",
+						"com"
+					],
+					"path": [
+						"_apis",
+						"profile",
+						"profiles",
+						"me"
+					],
+					"query": [
+						{
+							"key": "api-version",
+							"value": "7.1-preview.3"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"const { v4: uuidv4 } = require('uuid');",
+					"",
+					"const hexToBase64 = (hex) => {",
+					"  return btoa(hex.match(/\\w{2}/g).map(function(a) {",
+					"    return String.fromCharCode(parseInt(a, 16));",
+					"  }).join(\"\"));",
+					"}",
+					"",
+					"const hexToBase64Url = (hex) => {",
+					"  return hexToBase64(hex).replace(/\\+/g, \"-\").replace(/\\//g, \"_\").replace(/=/g, \"\");",
+					"}",
+					"",
+					"const certThumbprint = pm.collectionVariables.get(\"cert_thumbprint\").toUpperCase();",
+					"",
+					"const today = new Date(Date.now());",
+					"const tomorrow = new Date(today.valueOf());",
+					"tomorrow.setDate(today.getDate() + 4);",
+					"",
+					"const nbf = (today.getTime() / 1000).toFixed(0);",
+					"const exp = (tomorrow.getTime() / 1000).toFixed(0);",
+					"",
+					"pm.collectionVariables.set(\"nbf\", nbf);",
+					"pm.collectionVariables.set(\"exp\", exp);",
+					"pm.collectionVariables.set(\"jti\", uuidv4());",
+					"pm.collectionVariables.set(\"x5t\", hexToBase64Url(certThumbprint))"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "az_devops_scope",
+			"value": "499b84ac-1321-427f-aa17-267ca6975798/.default",
+			"type": "string"
+		},
+		{
+			"key": "cert_privatey_key",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "cert_thumbprint",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "tenant_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "client_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "account_name",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "x5t",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "nbf",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "exp",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "jti",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "client_assertion",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
