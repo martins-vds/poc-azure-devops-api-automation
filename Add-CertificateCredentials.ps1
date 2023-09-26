@@ -13,7 +13,7 @@ param (
             }
 
             if ( -Not($_.Extension -eq ".pfx") ) {
-                throw "Certificate file '$_' is not a PFX."
+                throw "Certificate file '$_' is not a PFX file."
             }
 
             return $true 
