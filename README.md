@@ -4,9 +4,14 @@
 
 - [PoC - Azure DevOps Api Automation](#poc---azure-devops-api-automation)
   - [Table of Contents](#table-of-contents)
+  - [Disclaimer](#disclaimer)
   - [Description](#description)
   - [Pre-requisites](#pre-requisites)
   - [How to use](#how-to-use)
+
+## Disclaimer
+
+This project is a Proof of Concept (PoC) and is not intended to be used in production environments. The code is provided as-is with no warranties and it is the responsibility of the user to test and validate the code before using it in a production environment.
 
 ## Description
 
